@@ -9,6 +9,7 @@ import { db } from '@/db'
 import { memorials, photos } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { PhotoGallery } from '@/components/memorials/photo-gallery'
+import { VirtualTribute } from '@/components/memorials/virtual-tribute'
 import { Card } from '@/components/ui/card'
 import { Heart, Calendar, Eye } from 'lucide-react'
 import { Metadata } from 'next'
@@ -175,17 +176,16 @@ export default async function MemorialPage({ params }: PageProps) {
           </section>
         )}
 
-        {/* Placeholder for Virtual Tributes (Phase 3.4) */}
+        {/* Virtual Tributes */}
         <section className="mb-12">
-          <Card className="p-8 text-center">
-            <Heart className="mx-auto h-12 w-12 text-neutral-300" />
-            <h3 className="mt-4 text-lg font-medium text-neutral-600">
-              虚拟悼念功能即将推出
-            </h3>
-            <p className="mt-2 text-sm text-neutral-500">
-              敬请期待蜡烛和鲜花献礼功能
-            </p>
-          </Card>
+          <h2 className="mb-6 text-2xl font-semibold text-neutral-800">
+            虚拟悼念
+          </h2>
+          <VirtualTribute
+            memorialId={memorial.id}
+            candleCount={memorial.candleCount}
+            flowerCount={memorial.flowerCount}
+          />
         </section>
 
         {/* Placeholder for Guestbook (Phase 3.5) */}
