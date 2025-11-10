@@ -24,8 +24,16 @@
 
 **项目名称**: wplacegrasswonder.memorial
 **项目类型**: 宠物纪念网站平台
-**技术栈**: Next.js 16 + TypeScript + Tailwind CSS + Supabase
+**技术栈**: Next.js 16 + TypeScript + Tailwind CSS + Drizzle ORM + Supabase
 **目标**: 为失去宠物的主人提供温暖、尊重、永久的纪念空间
+
+**技术栈说明**:
+- **前端**: Next.js 16 (App Router) + TypeScript + Tailwind CSS 4
+- **数据库**: PostgreSQL (Supabase 托管) + Drizzle ORM
+- **认证**: Supabase Auth
+- **存储**: Supabase Storage
+- **组件**: Shadcn UI + Framer Motion
+- **部署**: Vercel
 
 **核心价值**:
 - 情感化设计 - 共情至上
@@ -180,28 +188,84 @@ export const borderRadius = {
 
 ---
 
-### 1.2 Supabase 配置
+### 1.2 数据库与 ORM 配置
+
+#### Drizzle ORM + Supabase 组合方案
+
+**技术组合说明**:
+- **Supabase PostgreSQL**: 托管数据库
+- **Drizzle ORM**: 类型安全的数据库操作
+- **Supabase Auth**: 用户认证
+- **Supabase Storage**: 文件存储
 
 #### 任务清单
 
 **Supabase 项目设置**:
 - [ ] 在 Supabase 创建新项目
-- [ ] 获取项目 URL 和 anon key
+- [ ] 获取项目 URL、anon key 和数据库连接字符串
 - [ ] 配置环境变量
+
+**安装依赖**:
+```bash
+# Drizzle ORM
+npm install drizzle-orm postgres
+npm install -D drizzle-kit
+
+# Supabase (用于 Auth 和 Storage)
+npm install @supabase/supabase-js @supabase/ssr
+```
 
 **环境变量配置**:
 ```bash
 # .env.local
+
+# Supabase (用于 Auth 和 Storage)
 NEXT_PUBLIC_SUPABASE_URL=your-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Database (用于 Drizzle ORM)
+DATABASE_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
 ```
 
-**Supabase 客户端配置**:
-- [ ] 安装依赖: `npm install @supabase/supabase-js @supabase/ssr`
-- [ ] 创建 Supabase 客户端工具文件
+**获取 DATABASE_URL**:
+1. 登录 Supabase Dashboard
+2. 进入 Project Settings > Database
+3. 复制 Connection String (URI)
+4. 将 `[YOUR-PASSWORD]` 替换为数据库密码
 
-**产出文件**:
+**Drizzle 配置文件**:
+```typescript
+// drizzle.config.ts
+import type { Config } from 'drizzle-kit'
+import * as dotenv from 'dotenv'
+
+dotenv.config({ path: '.env.local' })
+
+export default {
+  schema: './src/db/schema.ts',
+  out: './drizzle',
+  dialect: 'postgresql',
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+} satisfies Config
+```
+
+**数据库客户端配置**:
+```typescript
+// src/db/index.ts
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+import * as schema from './schema'
+
+const connectionString = process.env.DATABASE_URL!
+const client = postgres(connectionString)
+
+export const db = drizzle(client, { schema })
+export { schema }
+```
+
+**Supabase 客户端配置** (用于 Auth 和 Storage):
 ```typescript
 // src/lib/supabase/client.ts
 import { createBrowserClient } from '@supabase/ssr'
@@ -228,34 +292,94 @@ export async function createServerSupabaseClient() {
         get(name: string) {
           return cookieStore.get(name)?.value
         },
+        set(name: string, value: string, options: any) {
+          cookieStore.set({ name, value, ...options })
+        },
+        remove(name: string, options: any) {
+          cookieStore.delete({ name, ...options })
+        },
       },
     }
   )
 }
 ```
 
+**package.json 脚本**:
+```json
+{
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  }
+}
+```
+
+**任务清单**:
+- [ ] 安装 Drizzle 和 Supabase 依赖
+- [ ] 创建 `drizzle.config.ts`
+- [ ] 创建 `src/db/index.ts` (Drizzle 客户端)
+- [ ] 创建 `src/lib/supabase/client.ts` 和 `server.ts`
+- [ ] 配置环境变量
+- [ ] 添加 db 脚本到 package.json
+
+**产出文件**:
+- [ ] `drizzle.config.ts`
+- [ ] `src/db/index.ts`
+- [ ] `src/lib/supabase/client.ts`
+- [ ] `src/lib/supabase/server.ts`
+
 ---
 
 ### 1.3 数据库 Schema 设计
 
-#### 数据库表结构
+#### 使用 Drizzle ORM 定义 Schema
 
-**核心表设计**:
+**完整 Schema 文件**:
 
-```sql
--- 用户表
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  email VARCHAR(255) UNIQUE NOT NULL,
-  name VARCHAR(100),
-  avatar_url TEXT,
-  subscription_tier VARCHAR(20) DEFAULT 'free', -- free/personal/lifetime
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+```typescript
+// src/db/schema.ts
+import {
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  timestamp,
+  integer,
+  boolean,
+  date,
+  pgEnum,
+} from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
 
--- 启用 RLS (Row Level Security)
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+// 枚举类型定义
+export const subscriptionTierEnum = pgEnum('subscription_tier', [
+  'free',
+  'personal',
+  'lifetime',
+])
+
+export const privacyEnum = pgEnum('privacy', ['public', 'private', 'unlisted'])
+
+export const tributeTypeEnum = pgEnum('tribute_type', ['message', 'candle', 'flower'])
+
+export const subscriptionStatusEnum = pgEnum('subscription_status', [
+  'active',
+  'cancelled',
+  'expired',
+])
+
+// 用户表
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  name: varchar('name', { length: 100 }),
+  avatarUrl: text('avatar_url'),
+  subscriptionTier: subscriptionTierEnum('subscription_tier').default('free'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
 
 -- 用户只能读取自己的数据
 CREATE POLICY "Users can view own data" ON users
