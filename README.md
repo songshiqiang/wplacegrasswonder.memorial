@@ -1,36 +1,191 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# wplacegrasswonder.memorial
 
-## Getting Started
+> 宠物纪念网站 - 为失去宠物的主人提供温暖、尊重、永久的纪念空间
 
-First, run the development server:
+---
+
+## 🌈 项目简介
+
+wplacegrasswonder.memorial 是一个专注于宠物纪念的情感化网站平台，提供：
+
+- 🐾 **个性化纪念页** - 为您的宠物创建永恒的纪念空间
+- 🕯️ **虚拟悼念** - 点亮蜡烛、献花表达思念
+- 💬 **留言互动** - 亲友可以留下温暖的回忆和安慰
+- 🌸 **彩虹桥故事墙** - 分享和浏览其他宠物的故事
+- 📸 **照片相册** - 珍藏每一个美好瞬间
+
+## 🛠️ 技术栈
+
+### 核心框架
+- **Next.js 16** - React 服务端渲染框架（App Router）
+- **TypeScript** - 类型安全
+- **Tailwind CSS 4** - 样式框架
+
+### 数据库 & 认证
+- **PostgreSQL** - Supabase 托管的关系型数据库
+- **Drizzle ORM** - 类型安全的数据库操作
+- **Supabase Auth** - 用户认证（邮箱/OAuth）
+- **Supabase Storage** - 图片和文件存储
+
+### UI & 动画
+- **Shadcn UI** - 可定制的 UI 组件库
+- **Framer Motion** - 流畅的动画效果
+- **Lucide React** - 美观的图标库
+
+### 开发工具
+- **Drizzle Kit** - 数据库迁移工具
+- **ESLint** - 代码规范
+- **TypeScript** - 类型检查
+
+## 📁 项目结构
+
+```
+wplacegrasswonder.memorial/
+├── app/                      # Next.js App Router
+│   ├── globals.css          # 全局样式（Tailwind + 设计系统）
+│   ├── layout.tsx           # 根布局
+│   └── page.tsx             # 首页
+├── components/              # React 组件
+│   ├── ui/                 # Shadcn UI 组件
+│   └── memorial/           # 纪念页相关组件
+│       ├── virtual-candle.tsx
+│       └── virtual-flower.tsx
+├── src/
+│   ├── db/                 # 数据库相关
+│   │   ├── schema.ts       # Drizzle Schema 定义
+│   │   └── index.ts        # 数据库客户端
+│   ├── lib/                # 工具库
+│   │   ├── supabase/       # Supabase 客户端
+│   │   ├── design-tokens.ts # 设计 Token
+│   │   └── utils.ts        # 工具函数
+│   ├── types/              # TypeScript 类型
+│   │   └── index.ts        # 通用类型定义
+│   └── hooks/              # 自定义 React Hooks
+├── .claude/                # 项目文档
+│   ├── design-system.md   # 设计系统文档
+│   ├── plan.md            # 项目规划
+│   ├── drizzle-setup.md   # Drizzle ORM 配置指南
+│   ├── implementation-plan.md # 实施计划
+│   └── database-rls-policies.sql # 数据库安全策略
+├── drizzle.config.ts       # Drizzle 配置
+├── components.json         # Shadcn UI 配置
+└── tsconfig.json           # TypeScript 配置
+```
+
+## 🚀 快速开始
+
+### 前置要求
+
+- Node.js 18+
+- npm 或 yarn
+- Supabase 账号
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 环境变量配置
+
+复制 `.env.local.example` 为 `.env.local` 并填入配置：
+
+```bash
+cp .env.local.example .env.local
+```
+
+需要配置的环境变量：
+
+```bash
+# Supabase (用于 Auth 和 Storage)
+NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Database (用于 Drizzle ORM)
+DATABASE_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
+
+# Site Configuration
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+### 数据库迁移
+
+```bash
+# 生成迁移文件
+npm run db:generate
+
+# 推送 schema 到数据库
+npm run db:push
+
+# 打开 Drizzle Studio 查看数据库
+npm run db:studio
+```
+
+### 运行开发服务器
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+访问 [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📝 开发脚本
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# 开发
+npm run dev
 
-## Learn More
+# 构建
+npm run build
 
-To learn more about Next.js, take a look at the following resources:
+# 启动生产服务器
+npm run start
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 代码检查
+npm run lint
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 数据库操作
+npm run db:generate  # 生成迁移
+npm run db:migrate   # 执行迁移
+npm run db:push      # 推送 schema
+npm run db:studio    # 打开 Drizzle Studio
+```
 
-## Deploy on Vercel
+## 🎨 设计系统
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+项目采用情感化设计原则：
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **色彩**: 柔和的蓝色（平静）+ 淡紫色（温柔）+ 柔粉色（温暖）
+- **字体**: Inter（18px 基准，易读性优先）
+- **圆角**: 12px 默认（柔和感）
+- **动画**: 300ms 过渡（流畅）
+
+详见：`.claude/design-system.md`
+
+## 📖 文档
+
+- [项目规划](/.claude/plan.md) - 完整的项目规划（AI 生成）
+- [实施计划](/.claude/implementation-plan.md) - 分阶段执行计划
+- [设计系统](/.claude/design-system.md) - 设计规范和组件
+- [Drizzle 配置](/.claude/drizzle-setup.md) - 数据库 ORM 配置指南
+
+## 🔐 安全
+
+- **Row Level Security (RLS)** - 数据库级别的访问控制
+- **认证保护** - Supabase Auth
+- **数据加密** - HTTPS + 数据库加密
+- **内容审核** - 留言需要审核
+
+详见：`.claude/database-rls-policies.sql`
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 📄 License
+
+MIT
+
+---
+
+**用心设计，用爱纪念** ❤️
