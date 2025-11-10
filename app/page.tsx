@@ -1,65 +1,140 @@
-import Image from "next/image";
+/**
+ * Homepage
+ * 彩虹桥纪念首页 - 展示公开纪念页
+ */
 
-export default function Home() {
+import Link from 'next/link'
+import { Hero } from '@/components/home/hero'
+import { RainbowBridgeWall } from '@/components/home/rainbow-bridge-wall'
+import { Button } from '@/components/ui/button'
+import { db } from '@/db'
+import { memorials, photos } from '@/db/schema'
+import { eq, desc } from 'drizzle-orm'
+import { Heart } from 'lucide-react'
+
+export const revalidate = 300 // ISR: Revalidate every 5 minutes
+
+export default async function HomePage() {
+  // 查询公开的纪念页及其第一张照片
+  const publicMemorials = await db
+    .select({
+      id: memorials.id,
+      petName: memorials.petName,
+      petBreed: memorials.petBreed,
+      petSpecies: memorials.petSpecies,
+      birthDate: memorials.birthDate,
+      deathDate: memorials.deathDate,
+      bio: memorials.bio,
+      slug: memorials.slug,
+      viewCount: memorials.viewCount,
+      candleCount: memorials.candleCount,
+      flowerCount: memorials.flowerCount,
+      createdAt: memorials.createdAt,
+    })
+    .from(memorials)
+    .where(eq(memorials.privacy, 'public'))
+    .orderBy(desc(memorials.createdAt))
+    .limit(30)
+
+  // 为每个纪念页获取第一张照片
+  const memorialsWithPhotos = await Promise.all(
+    publicMemorials.map(async (memorial) => {
+      const memorialPhotos = await db
+        .select({ url: photos.url })
+        .from(photos)
+        .where(eq(photos.memorialId, memorial.id))
+        .orderBy(photos.displayOrder)
+        .limit(1)
+
+      return {
+        ...memorial,
+        photos: memorialPhotos,
+      }
+    })
+  )
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <Hero />
+
+      {/* Rainbow Bridge Wall */}
+      <section id="story-wall" className="bg-gradient-to-b from-neutral-50 to-white py-16 lg:py-24">
+        <div className="container mx-auto px-4">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-semibold text-neutral-800 sm:text-4xl">
+              彩虹桥故事墙
+            </h2>
+            <p className="mt-4 text-lg text-neutral-600">
+              纪念那些陪伴我们的永远的朋友
+            </p>
+          </div>
+
+          <RainbowBridgeWall memorials={memorialsWithPhotos} />
+
+          {publicMemorials.length >= 30 && (
+            <div className="mt-12 text-center">
+              <Link href="/memorials">
+                <Button size="lg" variant="outline">
+                  查看更多纪念页
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-gradient-to-b from-primary-100 via-secondary-50 to-warm-50 py-16 lg:py-20">
+        <div className="container mx-auto max-w-3xl px-4 text-center">
+          <div className="mb-6 flex justify-center">
+            <Heart className="h-12 w-12 text-primary-600" fill="currentColor" />
+          </div>
+
+          <h2 className="text-3xl font-semibold text-neutral-800 sm:text-4xl">
+            为您的宠物创建纪念页
+          </h2>
+          <p className="mt-4 text-lg text-neutral-600">
+            建立一个温暖、永久的纪念空间，让爱与回忆永存
           </p>
+
+          <div className="mt-8 space-y-4">
+            <Link href="/memorials/create">
+              <Button size="lg" className="px-8 py-6 text-lg shadow-lg">
+                免费创建纪念页
+              </Button>
+            </Link>
+            <p className="text-sm text-neutral-500">
+              无需信用卡 · 永久免费 · 随时可用
+            </p>
+          </div>
+
+          {/* Features */}
+          <div className="mt-12 grid gap-6 sm:grid-cols-3">
+            <div className="rounded-lg bg-white/80 p-6 backdrop-blur">
+              <div className="text-2xl font-semibold text-primary-600">📸</div>
+              <h3 className="mt-3 font-medium text-neutral-800">珍贵回忆</h3>
+              <p className="mt-2 text-sm text-neutral-600">
+                上传照片，保存美好时光
+              </p>
+            </div>
+            <div className="rounded-lg bg-white/80 p-6 backdrop-blur">
+              <div className="text-2xl font-semibold text-primary-600">🕯️</div>
+              <h3 className="mt-3 font-medium text-neutral-800">虚拟悼念</h3>
+              <p className="mt-2 text-sm text-neutral-600">
+                蜡烛与鲜花，表达思念
+              </p>
+            </div>
+            <div className="rounded-lg bg-white/80 p-6 backdrop-blur">
+              <div className="text-2xl font-semibold text-primary-600">💬</div>
+              <h3 className="mt-3 font-medium text-neutral-800">留言祝福</h3>
+              <p className="mt-2 text-sm text-neutral-600">
+                访客留言，共同怀念
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </section>
     </div>
-  );
+  )
 }
