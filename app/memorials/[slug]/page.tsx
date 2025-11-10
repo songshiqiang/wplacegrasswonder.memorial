@@ -6,10 +6,12 @@
 import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { memorials, photos } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { memorials, photos, tributes } from '@/db/schema'
+import { eq, and, desc } from 'drizzle-orm'
 import { PhotoGallery } from '@/components/memorials/photo-gallery'
 import { VirtualTribute } from '@/components/memorials/virtual-tribute'
+import { TributeForm } from '@/components/memorials/tribute-form'
+import { TributeList } from '@/components/memorials/tribute-list'
 import { Card } from '@/components/ui/card'
 import { Heart, Calendar, Eye } from 'lucide-react'
 import { Metadata } from 'next'
@@ -76,6 +78,18 @@ export default async function MemorialPage({ params }: PageProps) {
     .from(photos)
     .where(eq(photos.memorialId, memorial.id))
     .orderBy(photos.displayOrder)
+
+  // 查询已批准的留言
+  const approvedTributes = await db
+    .select()
+    .from(tributes)
+    .where(
+      and(
+        eq(tributes.memorialId, memorial.id),
+        eq(tributes.isApproved, true)
+      )
+    )
+    .orderBy(desc(tributes.createdAt))
 
   // 增加访问计数（异步，不阻塞页面渲染）
   db.update(memorials)
@@ -188,14 +202,25 @@ export default async function MemorialPage({ params }: PageProps) {
           />
         </section>
 
-        {/* Placeholder for Guestbook (Phase 3.5) */}
+        {/* Guestbook - Tribute Form */}
+        <section className="mb-12">
+          <h2 className="mb-6 text-2xl font-semibold text-neutral-800">
+            留下您的悼念
+          </h2>
+          <TributeForm
+            memorialId={memorial.id}
+            isAuthenticated={!!user}
+            userName={user?.user_metadata?.name}
+            userEmail={user?.email}
+          />
+        </section>
+
+        {/* Guestbook - Tribute List */}
         <section>
-          <Card className="p-8 text-center">
-            <h2 className="mb-4 text-2xl font-semibold text-neutral-800">
-              留言板
-            </h2>
-            <p className="text-neutral-600">留言功能即将推出</p>
-          </Card>
+          <h2 className="mb-6 text-2xl font-semibold text-neutral-800">
+            悼念留言 ({approvedTributes.length})
+          </h2>
+          <TributeList tributes={approvedTributes} />
         </section>
       </div>
     </div>
