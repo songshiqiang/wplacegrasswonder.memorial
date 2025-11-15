@@ -41,32 +41,39 @@ wplacegrasswonder.memorial 是一个专注于宠物纪念的情感化网站平�
 
 ```
 wplacegrasswonder.memorial/
-├── app/                      # Next.js App Router
-│   ├── globals.css          # 全局样式（Tailwind + 设计系统）
-│   ├── layout.tsx           # 根布局
-│   └── page.tsx             # 首页
-├── components/              # React 组件
-│   ├── ui/                 # Shadcn UI 组件
-│   └── memorial/           # 纪念页相关组件
-│       ├── virtual-candle.tsx
-│       └── virtual-flower.tsx
-├── src/
+├── src/                     # 源代码目录
+│   ├── app/                # Next.js App Router
+│   │   ├── globals.css     # 全局样式（Tailwind + 设计系统）
+│   │   ├── layout.tsx      # 根布局
+│   │   ├── page.tsx        # 首页
+│   │   ├── (auth)/         # 认证相关页面
+│   │   ├── (dashboard)/    # Dashboard 页面
+│   │   ├── memorials/      # 纪念页页面
+│   │   └── api/            # API 路由
+│   ├── components/         # React 组件
+│   │   ├── ui/             # Shadcn UI 组件
+│   │   ├── home/           # 首页组件
+│   │   ├── memorials/      # 纪念页组件
+│   │   ├── dashboard/      # Dashboard 组件
+│   │   ├── admin/          # 管理员组件
+│   │   └── memorial/       # 虚拟悼念组件
 │   ├── db/                 # 数据库相关
 │   │   ├── schema.ts       # Drizzle Schema 定义
 │   │   └── index.ts        # 数据库客户端
 │   ├── lib/                # 工具库
 │   │   ├── supabase/       # Supabase 客户端
 │   │   ├── design-tokens.ts # 设计 Token
-│   │   └── utils.ts        # 工具函数
+│   │   └── utils/          # 工具函数
 │   ├── types/              # TypeScript 类型
 │   │   └── index.ts        # 通用类型定义
-│   └── hooks/              # 自定义 React Hooks
+│   ├── hooks/              # 自定义 React Hooks
+│   └── middleware.ts       # Next.js 中间件
 ├── .claude/                # 项目文档
 │   ├── design-system.md   # 设计系统文档
-│   ├── plan.md            # 项目规划
-│   ├── drizzle-setup.md   # Drizzle ORM 配置指南
-│   ├── implementation-plan.md # 实施计划
-│   └── database-rls-policies.sql # 数据库安全策略
+│   ├── deployment-guide.md # 部署指南
+│   ├── testing-guide.md   # 测试指南
+│   ├── project-summary.md # 项目总结
+│   └── ...                # 其他文档
 ├── drizzle.config.ts       # Drizzle 配置
 ├── components.json         # Shadcn UI 配置
 └── tsconfig.json           # TypeScript 配置

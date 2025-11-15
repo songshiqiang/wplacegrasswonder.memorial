@@ -205,21 +205,23 @@
 
 ### 文件结构
 ```
-app/
-├── (auth)/          # 认证页面
-├── (dashboard)/     # 受保护页面
-├── memorials/       # 纪念页
-├── api/             # API 路由
-components/
-├── ui/              # UI 组件库
-├── home/            # 首页组件
-├── memorials/       # 纪念页组件
-├── dashboard/       # Dashboard 组件
-├── admin/           # 管理员组件
 src/
+├── app/             # Next.js App Router
+│   ├── (auth)/      # 认证页面
+│   ├── (dashboard)/ # 受保护页面
+│   ├── memorials/   # 纪念页
+│   └── api/         # API 路由
+├── components/      # React 组件
+│   ├── ui/          # UI 组件库
+│   ├── home/        # 首页组件
+│   ├── memorials/   # 纪念页组件
+│   ├── dashboard/   # Dashboard 组件
+│   └── admin/       # 管理员组件
 ├── db/              # 数据库
 ├── lib/             # 工具库
 ├── types/           # 类型定义
+├── hooks/           # 自定义 Hooks
+└── middleware.ts    # Next.js 中间件
 ```
 
 ---
